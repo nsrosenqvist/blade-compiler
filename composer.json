@@ -1,0 +1,22 @@
+{
+    "name": "nsrosenqvist/blade-compiler",
+    "description": "Simple class that compiles Laravel Blade files",
+    "keywords": ["template compiler", "laravel blade"],
+    "license": "MIT",
+    "homepage": "https://github.com/nsrosenqvist/blade-compiler",
+    "authors": [
+        {
+            "name": "Niklas Rosenqvist",
+            "email": "niklas.s.rosenqvist@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "NSRosenqvist\\Blade\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^7.0",
+        "illuminate/view": "^5.4"
+    }
+}

@@ -57,7 +57,15 @@ class Compiler
         );
     }
 
-    function compile($path, $data = [])
+    function extend($name, callable $handler) {
+        $this->directive($name, $handler);
+    }
+
+    function directive($name, callable $handler) {
+        $this->compiler->directive($name, $handler);
+    }
+
+    function compile($path, array $data = [])
     {
         // If the file can't be found it's probably supplied as a template within
         // one of the base directories
@@ -78,7 +86,7 @@ class Compiler
         );
     }
 
-    function render($path, $data = [])
+    function render($path, array $data = [])
     {
         return $this->compile($path, $data)->render();
     }

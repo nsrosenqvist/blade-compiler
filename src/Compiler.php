@@ -24,7 +24,7 @@ class Compiler
 
         // Register system that Blade depends on
         $this->filesystem = new Filesystem();
-        $this->viewFinder = new FileViewFinder($this->filesystem, $paths);
+        $this->viewFinder = new FileViewFinder($this->filesystem, $this->paths);
         $this->resolver = new EngineResolver;
 
         // Next, we will register the various view engines with the resolver so that the

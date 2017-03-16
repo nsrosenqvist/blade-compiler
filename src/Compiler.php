@@ -90,4 +90,9 @@ class Compiler
     {
         return $this->compile($path, $data)->render();
     }
+
+    public function __call($method, $params)
+    {
+        return call_user_func_array([$this->factory, $method], $params);
+    }
 }

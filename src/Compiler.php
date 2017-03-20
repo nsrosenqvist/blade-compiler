@@ -10,26 +10,38 @@ use Illuminate\Container\Container;
 use Illuminate\View\Factory;
 use Illuminate\View\Engines\EngineResolver;
 use Illuminate\View\View;
+use Illuminate\View\Engines\FileEngine;
+use Illuminate\View\Engines\PhpEngine;
+use Illuminate\View\ViewFinderInterface;
 
 class Compiler
 {
-    function __construct($cacheDir = null, array $paths = [])
+    function __construct($cacheDir = null, $paths = [])
     {
-        $this->paths = $paths;
+        // Make sure cache directory exists
         $this->cacheDir = $cacheDir ?? sys_get_temp_dir().'/blade/views';
 
         if ( ! file_exists($this->cacheDir)) {
             mkdir($this->cacheDir, 0755, true);
         }
 
-        // Register system that Blade depends on
+        // Register system that Blade depends on, starting with the view finder
         $this->filesystem = new Filesystem();
-        $this->viewFinder = new FileViewFinder($this->filesystem, $this->paths);
-        $this->resolver = new EngineResolver;
+
+        if ($paths instanceof ViewFinderInterface) {
+            $this->paths = [];
+            $this->viewFinder = $paths;
+        }
+        else {
+            $this->paths = $paths;
+            $this->viewFinder = new FileViewFinder($this->filesystem, $this->paths);
+        }
 
         // Next, we will register the various view engines with the resolver so that the
         // environment will resolve the engines needed for various views based on the
         // extension of view file.
+        $this->resolver = new EngineResolver;
+
         $this->resolver->register('file', function () {
             return new FileEngine;
         });
@@ -69,9 +81,7 @@ class Compiler
     {
         // If the file can't be found it's probably supplied as a template within
         // one of the base directories
-        if ( ! file_exists($path)) {
-            $path = $this->viewFinder->find($path);
-        }
+        $path = $this->find($path);
 
         // Make sure that we use the right resolver for the initial file
         $engine = $this->factory->getEngineFromPath($path);
@@ -84,6 +94,19 @@ class Compiler
             $path,
             $data
         );
+    }
+
+    function find($path) {
+        if ( ! file_exists($path)) {
+            $path = $this->viewFinder->find($path);
+        }
+
+        return $path;
+    }
+
+    function compiledPath($path)
+    {
+        return $this->compiler->getCompiledPath($this->find($path));
     }
 
     function render($path, array $data = [])

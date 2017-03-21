@@ -109,7 +109,7 @@ class Compiler
         return $this->compiler->getCompiledPath($this->find($path));
     }
 
-    function render($path, array $data = [])
+    function render($path, $data = [])
     {
         return $this->compile($path, $data)->render();
     }

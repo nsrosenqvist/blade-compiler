@@ -73,6 +73,12 @@ class Compiler
         $this->directive($name, $handler);
     }
 
+
+    function modify(callable $handler) {
+        $handler($this);
+    }
+
+
     function directive($name, callable $handler) {
         $this->compiler->directive($name, $handler);
     }

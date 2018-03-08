@@ -16,12 +16,17 @@ use Illuminate\View\ViewFinderInterface;
 
 class Compiler
 {
-    function __construct($cacheDir = null, $paths = [])
+    /**
+     * Create a Blade compiler
+     * @param string|null    $cacheDir  The filesystem directory where templates will be cached
+     * @param string[]|array $paths     An array of strings to directories that should be available for the compiler
+     */
+    public function __construct($cacheDir = null, $paths = [])
     {
         // Make sure cache directory exists
         $this->cacheDir = $cacheDir ?? sys_get_temp_dir().'/blade/views';
 
-        if ( ! file_exists($this->cacheDir)) {
+        if (! file_exists($this->cacheDir)) {
             mkdir($this->cacheDir, 0755, true);
         }
 
@@ -69,21 +74,58 @@ class Compiler
         );
     }
 
-    function extend($name, callable $handler) {
-        $this->directive($name, $handler);
-    }
-
-
-    function modify(callable $handler) {
+    /**
+     * Gives full access to edit the blade environment
+     * @param  callable $handler  A function that has the compiler as the first argument
+     */
+    public function modify(callable $handler)
+    {
         $handler($this);
     }
 
-
-    function directive($name, callable $handler) {
+    /**
+     * Add a blade directive to the compiler
+     * @param  string   $name     Name of blade directive
+     * @param  callable $handler  The function that handles the directive
+     */
+    public function directive(string $name, callable $handler)
+    {
         $this->compiler->directive($name, $handler);
     }
 
-    function compile($path, array $data = [])
+    /**
+    * Shorthand for directive
+    * @param  string   $name     Name of blade directive
+    * @param  callable $handler  The function that handles the directive
+    */
+    public function extend(string $name, callable $handler)
+    {
+        $this->directive($name, $handler);
+    }
+
+    /**
+    * Shorthand for factory()->setContainer() or getContainer()
+    * @param  string|null  $container                         Illuminate Container object
+    * @param  \Illuminate\Contracts\Container\Container|null  The container or null
+    */
+    public function container($container = null)
+    {
+        if (is_null($container)) {
+            return $this->factory->getContainer();
+        }
+        else {
+            $this->factory->share($name, $handler);
+            return null;
+        }
+    }
+
+    /**
+     * Compile a specific Blade file
+     * @param  string $path           Path to file to compile
+     * @param  array  $data           An associative array of data to be passed to the view
+     * @return \Illuminate\View\View  Returns the blade view
+     */
+    public function compile(string $path, array $data = [])
     {
         // If the file can't be found it's probably supplied as a template within
         // one of the base directories
@@ -102,24 +144,57 @@ class Compiler
         );
     }
 
-    function find($path) {
-        if ( ! file_exists($path)) {
+    /**
+     * Compiles a string with blade directives
+     * @param  string $str  String with directives
+     * @return string       Compiled string
+     */
+    public function compileString(string $str)
+    {
+        return $this->compiler->compileString($str);
+    }
+
+    /**
+     * Searches the viewFinder for the path provided
+     * @param  string $path  Path to search for
+     * @return string        If absolute provided and exists, return it, otherwise return result from viewFinder
+     */
+    public function find(string $path)
+    {
+        if (! file_exists($path)) {
             $path = $this->viewFinder->find($path);
         }
 
         return $path;
     }
 
-    function compiledPath($path)
+    /**
+     * Get the Blade files compiled version
+     * @param  string $path  Path to uncompiled file
+     * @return string        Path to cached file
+     */
+    public function compiledPath(string $path)
     {
         return $this->compiler->getCompiledPath($this->find($path));
     }
 
-    function render($path, $data = [])
+    /**
+     * Shorthand for compile()->render() to get the rendered view
+     * @param  string $path  Path to blade file
+     * @param  array  $data  Associative array with data for the view
+     * @return string        The compiled view
+     */
+    public function render(string $path, array $data = [])
     {
         return $this->compile($path, $data)->render();
     }
 
+    /**
+     * Every method that is not defined is run against the factory object (for example share)
+     * @param  string         $method  Method name
+     * @param  string[]|array $params  Associative array with parameters
+     * @return mixed                   Whatever factory's method returns
+     */
     public function __call($method, $params)
     {
         return call_user_func_array([$this->factory, $method], $params);

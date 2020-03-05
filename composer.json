@@ -17,6 +17,6 @@
     },
     "require": {
         "php": "^7.0",
-        "illuminate/view": "^5.4"
+        "illuminate/view": "^6.0"
     }
 }
